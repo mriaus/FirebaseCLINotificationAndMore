@@ -1,5 +1,5 @@
 const functions = require('firebase-functions');
-const faker = require('faker');
+const faker = require('faker'); //Permite la creacion de falsos datos
 const admin = require('firebase-admin');
 admin.initializeApp();
 
@@ -7,30 +7,22 @@ admin.initializeApp();
 // // https://firebase.google.com/docs/functions/typescript
 
 
-
-
-//Intento personal (Salta al modificar la bbdd pero sigue sin mandar notificaciones)
-
+//Salta al modificar la bbdd pero sigue sin mandar notificaciones
 exports.onChangeDB = functions.database.ref('/messages').onWrite(async (snapshot: any)=> {
- 
-    // Notification details.
-  
+    //La notificación personalizada que salta (Se le puede añadir datos)   
     const message = {
       notification : {
         body : 'This is a Firebase Cloud Messaging Topic Message!',
         title : 'FCM Message'
   }
     };
-          // Send notifications to all tokens.
+          // Manda las notificaciones al grupo 'haha'
        await admin.messaging().sendToTopic('haha',message);
-      console.log('Notificacion mandada');
-  
-
- // console.log('eje');
+      console.log('Notificacion mandada'); //Se muestra en la consola de firebase
 });
 
 
-
+//Permite añadir datos a la bbdd de firebase
 exports.addMessage = functions.https.onRequest(async (req: any, res: any) => {
     // Grab the text parameter.
     const original = req.query.text;
@@ -39,7 +31,7 @@ exports.addMessage = functions.https.onRequest(async (req: any, res: any) => {
     // Redirect with 303 SEE OTHER to the URL of the pushed object in the Firebase console.
     res.redirect(303, snapshot.ref.toString());
   });
-//Intento de seguimiento de tema
+//Se suscribe al tema que mandas desde el cliente
  exports.followTheme = functions.https.onCall((data:any) =>{
 
   admin.messaging().subscribeToTopic(data.token, data.topic)
@@ -47,14 +39,12 @@ exports.addMessage = functions.https.onRequest(async (req: any, res: any) => {
     // See the MessagingTopicManagementResponse reference documentation
     // for the contents of response.
     console.log('Successfully subscribed to topic:', response);
-    console.log('Error?');
-    console.log(response.errors[0].error.toString());
   })
   .catch(function(error:any) {
     console.log('Error subscribing to topic:', error);
   });
 });
- 
+  //Unsub del tema que mandas desde el cliente
   // tslint:disable-next-line: no-shadowed-variable
   exports.unfollowTheme = functions.https.onCall((data:any)=>{
     admin.messaging().unsubscribeFromTopic(data.token, data.topic)
@@ -62,7 +52,6 @@ exports.addMessage = functions.https.onRequest(async (req: any, res: any) => {
       // See the MessagingTopicManagementResponse reference documentation
       // for the contents of response.
       console.log('Successfully unsubscribed to topic:', response);
-      
     })
     .catch(function(error:any) {
       console.log('Error subscribing to topic:', error);
@@ -72,7 +61,7 @@ exports.addMessage = functions.https.onRequest(async (req: any, res: any) => {
 
  
 
-
+ //Cada vez que se pone algo en mayusculas en la parte de messages de la base de datos le hace uppercase
   exports.makeUppercase = functions.database.ref('/messages/{pushId}/original')
     .onCreate((snapshot: { val: () => any; ref: { parent: any; }; }, context: { params: { pushId: any; }; }) => {
       // Grab the current value of what was written to the Realtime Database.
